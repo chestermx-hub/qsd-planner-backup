@@ -1,0 +1,25 @@
+name: Weekly encrypted backup
+
+on:
+  schedule:
+    # GitHub Actions cron is UTC. 09:00 UTC is 03:00 in Mexico City.
+    - cron: "0 9 * * 0"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Trigger Replit backup
+        env:
+          BACKUP_TRIGGER_TOKEN: ${{ secrets.BACKUP_TRIGGER_TOKEN }}
+        run: |
+          test -n "$BACKUP_TRIGGER_TOKEN"
+          curl --fail-with-body --show-error --silent --max-time 1800 \
+            -X POST \
+            -H "x-backup-trigger-token: ${BACKUP_TRIGGER_TOKEN}" \
+            -H "content-type: application/json" \
+            https://plannerqsd.replit.app/api/ops/backup
